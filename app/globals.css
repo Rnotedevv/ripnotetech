@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  background: radial-gradient(circle at top, rgba(124, 58, 237, 0.18), transparent 25%),
+    radial-gradient(circle at right, rgba(6, 182, 212, 0.18), transparent 20%),
+    linear-gradient(180deg, #050816, #0b1020 48%, #050816 100%);
+  color: #e5eefb;
+}
+
+* {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+input,
+textarea,
+select {
+  @apply w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20;
+}
+
+button {
+  @apply transition;
+}
+
+label {
+  @apply text-sm font-medium text-slate-200;
+}
+
+.table-shell {
+  @apply overflow-hidden rounded-2xl border border-white/10;
+}
+
+.table-shell table {
+  @apply min-w-full divide-y divide-white/10;
+}
+
+.table-shell thead {
+  @apply bg-white/5;
+}
+
+.table-shell th,
+.table-shell td {
+  @apply px-4 py-3 text-left text-sm;
+}
+
+.table-shell tbody tr {
+  @apply border-t border-white/5;
+}
+
+.badge {
+  @apply inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-200;
+}
+
+.primary-btn {
+  @apply inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-violet-500 to-cyan-500 px-4 py-3 text-sm font-semibold text-white shadow-glow hover:opacity-95;
+}
+
+.secondary-btn {
+  @apply inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-slate-200 hover:bg-white/10;
+}
+
+.danger-btn {
+  @apply inline-flex items-center justify-center rounded-2xl border border-rose-400/30 bg-rose-400/10 px-4 py-3 text-sm font-medium text-rose-100 hover:bg-rose-400/15;
+}
