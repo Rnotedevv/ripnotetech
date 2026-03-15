@@ -8,6 +8,11 @@ import {
   updateProduct
 } from '@/lib/db';
 
+function parsePositiveInt(value) {
+  const n = parseInt(String(value ?? '').trim(), 10);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
 function buildRedirectUrl(request, targetPath, message, isError = false) {
   const url = new URL(targetPath || '/dashboard/products', request.url);
   if (isError) {
@@ -64,13 +69,13 @@ export async function POST(request) {
     }
 
     if (action === 'update-product') {
-      const productId = Number(formData.get('product_id'));
+      const productId = parsePositiveInt(formData.get('product_id'));
       const product_code = String(formData.get('product_code') || '').trim();
       const name = String(formData.get('name') || '').trim();
       const description = String(formData.get('description') || '').trim();
       const delivery_note = String(formData.get('delivery_note') || '').trim();
 
-      if (!Number.isFinite(productId) || productId <= 0) {
+      if (!productId) {
         return NextResponse.redirect(
           buildRedirectUrl(request, redirectTarget, 'Product ID tidak valid.', true)
         );
@@ -95,9 +100,9 @@ export async function POST(request) {
     }
 
     if (action === 'delete-product') {
-      const productId = Number(formData.get('product_id'));
+      const productId = parsePositiveInt(formData.get('product_id'));
 
-      if (!Number.isFinite(productId) || productId <= 0) {
+      if (!productId) {
         return NextResponse.redirect(
           buildRedirectUrl(request, redirectTarget, 'Product ID tidak valid.', true)
         );
@@ -111,11 +116,11 @@ export async function POST(request) {
     }
 
     if (action === 'toggle-product') {
-      const productId = Number(formData.get('product_id'));
+      const productId = parsePositiveInt(formData.get('product_id'));
       const isActiveRaw = String(formData.get('is_active') || '').trim();
       const is_active = isActiveRaw === 'true';
 
-      if (!Number.isFinite(productId) || productId <= 0) {
+      if (!productId) {
         return NextResponse.redirect(
           buildRedirectUrl(request, redirectTarget, 'Product ID tidak valid.', true)
         );
@@ -133,20 +138,16 @@ export async function POST(request) {
     }
 
     if (action === 'create-tier') {
-      const product_id = Number(formData.get('product_id'));
-      const min_qty = Number(formData.get('min_qty'));
+      const product_id = parsePositiveInt(formData.get('product_id'));
+      const min_qty = parsePositiveInt(formData.get('min_qty'));
       const maxQtyRaw = String(formData.get('max_qty') || '').trim();
-      const unit_price = Number(String(formData.get('unit_price') || '').replace(/[^0-9]/g, ''));
-      const max_qty = maxQtyRaw ? Number(maxQtyRaw) : null;
+      const unit_price = parseInt(
+        String(formData.get('unit_price') || '').replace(/[^0-9]/g, ''),
+        10
+      );
+      const max_qty = maxQtyRaw ? parsePositiveInt(maxQtyRaw) : null;
 
-      if (
-        !Number.isFinite(product_id) ||
-        product_id <= 0 ||
-        !Number.isFinite(min_qty) ||
-        min_qty <= 0 ||
-        !Number.isFinite(unit_price) ||
-        unit_price <= 0
-      ) {
+      if (!product_id || !min_qty || !Number.isFinite(unit_price) || unit_price <= 0) {
         return NextResponse.redirect(
           buildRedirectUrl(request, redirectTarget, 'Data tier harga tidak valid.', true)
         );
@@ -155,7 +156,7 @@ export async function POST(request) {
       await createPriceTier({
         product_id,
         min_qty,
-        max_qty: Number.isFinite(max_qty) ? max_qty : null,
+        max_qty,
         unit_price
       });
 
@@ -165,9 +166,9 @@ export async function POST(request) {
     }
 
     if (action === 'delete-tier') {
-      const tierId = Number(formData.get('tier_id'));
+      const tierId = parsePositiveInt(formData.get('tier_id'));
 
-      if (!Number.isFinite(tierId) || tierId <= 0) {
+      if (!tierId) {
         return NextResponse.redirect(
           buildRedirectUrl(request, redirectTarget, 'Tier ID tidak valid.', true)
         );
