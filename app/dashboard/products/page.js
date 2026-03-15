@@ -31,7 +31,7 @@ export default async function ProductsPage({ searchParams }) {
               : 'Buat produk baru yang nanti akan muncul di menu List Product dan Beli Qty.'
           }
         >
-          <form action="/api/products" method="POST" className="space-y-4">
+          " method="POST" className="space-y-4">
             <input
               type="hidden"
               name="action"
@@ -110,7 +110,7 @@ export default async function ProductsPage({ searchParams }) {
           title="Set Harga Per Qty"
           description="Gunakan tier harga agar harga menyesuaikan jumlah qty pembelian."
         >
-          <form action="/api/products" method="POST" className="grid gap-4 md:grid-cols-2">
+          " method="POST" className="grid gap-4 md:grid-cols-2">
             <input type="hidden" name="action" value="create-tier" />
             <input type="hidden" name="redirectTo" value="/dashboard/products" />
 
@@ -214,28 +214,18 @@ export default async function ProductsPage({ searchParams }) {
                     Edit
                   </a>
 
-                  <form action="/api/products" method="POST">
-                    <input type="hidden" name="action" value="delete-product" />
-                    <input
-                      type="hidden"
-                      name="redirectTo"
-                      value="/dashboard/products"
-                    />
-                    <input type="hidden" name="product_id" value={product.id} />
-                    <button
-                      type="submit"
-                      className="danger-btn w-full"
-                      onClick={(event) => {
-                        const ok = window.confirm(
-                          'Yakin ingin menghapus produk ini? Tier harga dan stok terkait juga akan ikut terhapus.'
-                        );
-                        if (!ok) event.preventDefault();
-                      }}
-                    >
-                      Hapus
-                    </button>
-                  </form>
-
+                <form action="/api/products" method="POST">
+  <input type="hidden" name="action" value="delete-product" />
+  <input
+    type="hidden"
+    name="redirectTo"
+    value="/dashboard/products"
+  />
+  <input type="hidden" name="product_id" value={product.id} />
+  <button type="submit" className="danger-btn w-full">
+    Hapus
+  </button>
+</form>
                   <form action="/api/products" method="POST">
                     <input type="hidden" name="action" value="toggle-product" />
                     <input
