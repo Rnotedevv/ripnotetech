@@ -8,6 +8,11 @@ import {
   updateProduct
 } from '@/lib/db';
 
+function parseId(value) {
+  const raw = String(value ?? '').trim();
+  return raw ? raw : null;
+}
+
 function parsePositiveInt(value) {
   const raw = String(value ?? '').trim();
   if (!raw) return null;
@@ -39,12 +44,9 @@ export async function POST(request) {
     const action = String(formData.get('action') || '').trim();
     const redirectTarget = String(formData.get('redirectTo') || '/dashboard/products');
 
-    const debugProductId = formData.get('product_id');
-    const debugTierId = formData.get('tier_id');
-
     console.log('POST /api/products action=', action, {
-      product_id: debugProductId,
-      tier_id: debugTierId
+      product_id: formData.get('product_id'),
+      tier_id: formData.get('tier_id')
     });
 
     if (!action) {
@@ -79,7 +81,7 @@ export async function POST(request) {
     }
 
     if (action === 'update-product') {
-      const productId = parsePositiveInt(formData.get('product_id'));
+      const productId = parseId(formData.get('product_id'));
       const product_code = String(formData.get('product_code') || '').trim();
       const name = String(formData.get('name') || '').trim();
       const description = String(formData.get('description') || '').trim();
@@ -110,7 +112,7 @@ export async function POST(request) {
     }
 
     if (action === 'delete-product') {
-      const productId = parsePositiveInt(formData.get('product_id'));
+      const productId = parseId(formData.get('product_id'));
 
       if (!productId) {
         return NextResponse.redirect(
@@ -126,7 +128,7 @@ export async function POST(request) {
     }
 
     if (action === 'toggle-product') {
-      const productId = parsePositiveInt(formData.get('product_id'));
+      const productId = parseId(formData.get('product_id'));
       const isActiveRaw = String(formData.get('is_active') || '').trim();
       const is_active = isActiveRaw === 'true';
 
@@ -148,7 +150,7 @@ export async function POST(request) {
     }
 
     if (action === 'create-tier') {
-      const product_id = parsePositiveInt(formData.get('product_id'));
+      const product_id = parseId(formData.get('product_id'));
       const min_qty = parsePositiveInt(formData.get('min_qty'));
       const maxQtyRaw = String(formData.get('max_qty') || '').trim();
       const unit_price = parseInt(
@@ -176,7 +178,7 @@ export async function POST(request) {
     }
 
     if (action === 'delete-tier') {
-      const tierId = parsePositiveInt(formData.get('tier_id'));
+      const tierId = parseId(formData.get('tier_id'));
 
       if (!tierId) {
         return NextResponse.redirect(
