@@ -31,17 +31,13 @@ export default async function ProductsPage({ searchParams }) {
               : 'Buat produk baru yang nanti akan muncul di menu List Product dan Beli Qty.'
           }
         >
-          " method="POST" className="space-y-4">
+          <form action="/api/products" method="POST" className="space-y-4">
             <input
               type="hidden"
               name="action"
               value={editingProduct ? 'update-product' : 'create-product'}
             />
-            <input
-              type="hidden"
-              name="redirectTo"
-              value="/dashboard/products"
-            />
+            <input type="hidden" name="redirectTo" value="/dashboard/products" />
             {editingProduct ? (
               <input type="hidden" name="product_id" value={editingProduct.id} />
             ) : null}
@@ -98,7 +94,10 @@ export default async function ProductsPage({ searchParams }) {
               </button>
 
               {editingProduct ? (
-                <a href="/dashboard/products" className="secondary-btn w-full text-center">
+                <a
+                  href="/dashboard/products"
+                  className="secondary-btn w-full text-center"
+                >
                   Batal Edit
                 </a>
               ) : null}
@@ -110,20 +109,22 @@ export default async function ProductsPage({ searchParams }) {
           title="Set Harga Per Qty"
           description="Gunakan tier harga agar harga menyesuaikan jumlah qty pembelian."
         >
-          " method="POST" className="grid gap-4 md:grid-cols-2">
+          <form action="/api/products" method="POST" className="grid gap-4 md:grid-cols-2">
             <input type="hidden" name="action" value="create-tier" />
             <input type="hidden" name="redirectTo" value="/dashboard/products" />
 
             <div className="md:col-span-2">
               <label htmlFor="product_id">Pilih Produk</label>
-              <select id="product_id" name="product_id" className="mt-2" required>
+              <select
+                id="product_id"
+                name="product_id"
+                className="mt-2"
+                defaultValue={editingProduct?.id || ''}
+                required
+              >
                 <option value="">Pilih produk</option>
                 {products.map((product) => (
-                  <option
-                    key={product.id}
-                    value={product.id}
-                    selected={editingProduct?.id === product.id}
-                  >
+                  <option key={product.id} value={product.id}>
                     {product.name}
                   </option>
                 ))}
@@ -214,25 +215,18 @@ export default async function ProductsPage({ searchParams }) {
                     Edit
                   </a>
 
-                <form action="/api/products" method="POST">
-  <input type="hidden" name="action" value="delete-product" />
-  <input
-    type="hidden"
-    name="redirectTo"
-    value="/dashboard/products"
-  />
-  <input type="hidden" name="product_id" value={product.id} />
-  <button type="submit" className="danger-btn w-full">
-    Hapus
-  </button>
-</form>
+                  <form action="/api/products" method="POST">
+                    <input type="hidden" name="action" value="delete-product" />
+                    <input type="hidden" name="redirectTo" value="/dashboard/products" />
+                    <input type="hidden" name="product_id" value={product.id} />
+                    <button type="submit" className="danger-btn w-full">
+                      Hapus
+                    </button>
+                  </form>
+
                   <form action="/api/products" method="POST">
                     <input type="hidden" name="action" value="toggle-product" />
-                    <input
-                      type="hidden"
-                      name="redirectTo"
-                      value="/dashboard/products"
-                    />
+                    <input type="hidden" name="redirectTo" value="/dashboard/products" />
                     <input type="hidden" name="product_id" value={product.id} />
                     <input
                       type="hidden"
@@ -268,11 +262,7 @@ export default async function ProductsPage({ searchParams }) {
                         <td>
                           <form action="/api/products" method="POST">
                             <input type="hidden" name="action" value="delete-tier" />
-                            <input
-                              type="hidden"
-                              name="redirectTo"
-                              value="/dashboard/products"
-                            />
+                            <input type="hidden" name="redirectTo" value="/dashboard/products" />
                             <input type="hidden" name="tier_id" value={tier.id} />
                             <button type="submit" className="danger-btn">
                               Hapus
