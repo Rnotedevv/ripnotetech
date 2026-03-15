@@ -9,7 +9,9 @@ import {
 } from '@/lib/db';
 
 function parsePositiveInt(value) {
-  const n = parseInt(String(value ?? '').trim(), 10);
+  const raw = String(value ?? '').trim();
+  if (!raw) return null;
+  const n = parseInt(raw, 10);
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
@@ -36,6 +38,14 @@ export async function POST(request) {
 
     const action = String(formData.get('action') || '').trim();
     const redirectTarget = String(formData.get('redirectTo') || '/dashboard/products');
+
+    const debugProductId = formData.get('product_id');
+    const debugTierId = formData.get('tier_id');
+
+    console.log('POST /api/products action=', action, {
+      product_id: debugProductId,
+      tier_id: debugTierId
+    });
 
     if (!action) {
       return NextResponse.redirect(
