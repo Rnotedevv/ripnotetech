@@ -6,21 +6,16 @@ import { formatRupiah } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
-function normalizeSearchParams(searchParams) {
-  if (!searchParams) return {};
-  return searchParams;
-}
-
 function getSingleParam(value) {
   if (Array.isArray(value)) return value[0] || '';
   return value || '';
 }
 
 export default async function ProductsPage({ searchParams }) {
-  const params = normalizeSearchParams(searchParams);
+  const params = searchParams || {};
   const products = await getProductsForDashboard();
 
-  const editRaw = getSingleParam(params?.edit);
+  const editRaw = getSingleParam(params.edit);
   const editingId = editRaw ? parseInt(String(editRaw), 10) : null;
 
   const editingProduct =
@@ -28,12 +23,15 @@ export default async function ProductsPage({ searchParams }) {
       ? products.find((item) => Number(item.id) === editingId) || null
       : null;
 
-  const flashMessage = getSingleParam(params?.error) || getSingleParam(params?.ok);
-  const flashType = getSingleParam(params?.error) ? 'error' : 'success';
+  const errorMessage = getSingleParam(params.error);
+  const okMessage = getSingleParam(params.ok);
 
   return (
     <div className="space-y-6">
-      <FlashBanner type={flashType} message={flashMessage} />
+      <FlashBanner
+        type={errorMessage ? 'error' : 'success'}
+        message={errorMessage || okMessage}
+      />
 
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
         <Card
@@ -52,7 +50,7 @@ export default async function ProductsPage({ searchParams }) {
             />
             <input type="hidden" name="redirectTo" value="/dashboard/products" />
             {editingProduct ? (
-              <input type="hidden" name="product_id" value={editingProduct.id} />
+              <input type="hidden" name="product_id" value={String(editingProduct.id)} />
             ) : null}
 
             <div>
@@ -137,7 +135,7 @@ export default async function ProductsPage({ searchParams }) {
               >
                 <option value="">Pilih produk</option>
                 {products.map((product) => (
-                  <option key={product.id} value={product.id}>
+                  <option key={product.id} value={String(product.id)}>
                     {product.name}
                   </option>
                 ))}
@@ -146,14 +144,7 @@ export default async function ProductsPage({ searchParams }) {
 
             <div>
               <label htmlFor="min_qty">Min Qty</label>
-              <input
-                id="min_qty"
-                name="min_qty"
-                type="number"
-                min="1"
-                className="mt-2"
-                required
-              />
+              <input id="min_qty" name="min_qty" type="number" min="1" className="mt-2" required />
             </div>
 
             <div>
@@ -199,14 +190,10 @@ export default async function ProductsPage({ searchParams }) {
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div>
                   <div className="flex flex-wrap items-center gap-3">
-                    <h3 className="text-xl font-semibold text-white">
-                      {product.name}
-                    </h3>
+                    <h3 className="text-xl font-semibold text-white">{product.name}</h3>
                     <span className="badge">{product.product_code}</span>
                     <span className="badge">stok {product.available_stock}</span>
-                    <span className="badge">
-                      {product.is_active ? 'aktif' : 'nonaktif'}
-                    </span>
+                    <span className="badge">{product.is_active ? 'aktif' : 'nonaktif'}</span>
                   </div>
 
                   <p className="mt-2 max-w-3xl text-sm text-slate-400">
@@ -231,7 +218,7 @@ export default async function ProductsPage({ searchParams }) {
                   <form action="/api/products" method="POST">
                     <input type="hidden" name="action" value="delete-product" />
                     <input type="hidden" name="redirectTo" value="/dashboard/products" />
-                    <input type="hidden" name="product_id" value={product.id} />
+                    <input type="hidden" name="product_id" value={String(product.id)} />
                     <button type="submit" className="danger-btn w-full">
                       Hapus
                     </button>
@@ -240,7 +227,7 @@ export default async function ProductsPage({ searchParams }) {
                   <form action="/api/products" method="POST">
                     <input type="hidden" name="action" value="toggle-product" />
                     <input type="hidden" name="redirectTo" value="/dashboard/products" />
-                    <input type="hidden" name="product_id" value={product.id} />
+                    <input type="hidden" name="product_id" value={String(product.id)} />
                     <input
                       type="hidden"
                       name="is_active"
@@ -276,7 +263,7 @@ export default async function ProductsPage({ searchParams }) {
                           <form action="/api/products" method="POST">
                             <input type="hidden" name="action" value="delete-tier" />
                             <input type="hidden" name="redirectTo" value="/dashboard/products" />
-                            <input type="hidden" name="tier_id" value={tier.id} />
+                            <input type="hidden" name="tier_id" value={String(tier.id)} />
                             <button type="submit" className="danger-btn">
                               Hapus
                             </button>
@@ -284,7 +271,6 @@ export default async function ProductsPage({ searchParams }) {
                         </td>
                       </tr>
                     ))}
-
                     {!product.price_tiers.length ? (
                       <tr>
                         <td colSpan="4" className="text-slate-400">
