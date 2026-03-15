@@ -8,14 +8,14 @@ import {
   updateProduct
 } from '@/lib/db';
 
-function redirectTo(url, message, isError = false) {
-  const nextUrl = new URL(url, 'http://localhost');
+function buildRedirectUrl(request, targetPath, message, isError = false) {
+  const url = new URL(targetPath || '/dashboard/products', request.url);
   if (isError) {
-    nextUrl.searchParams.set('error', message);
+    url.searchParams.set('error', message);
   } else {
-    nextUrl.searchParams.set('ok', message);
+    url.searchParams.set('ok', message);
   }
-  return NextResponse.redirect(nextUrl.pathname + nextUrl.search);
+  return url;
 }
 
 export async function GET() {
@@ -33,7 +33,9 @@ export async function POST(request) {
     const redirectTarget = String(formData.get('redirectTo') || '/dashboard/products');
 
     if (!action) {
-      return redirectTo(redirectTarget, 'Action tidak ditemukan.', true);
+      return NextResponse.redirect(
+        buildRedirectUrl(request, redirectTarget, 'Action tidak ditemukan.', true)
+      );
     }
 
     if (action === 'create-product') {
@@ -43,7 +45,9 @@ export async function POST(request) {
       const delivery_note = String(formData.get('delivery_note') || '').trim();
 
       if (!product_code || !name) {
-        return redirectTo(redirectTarget, 'Kode produk dan nama produk wajib diisi.', true);
+        return NextResponse.redirect(
+          buildRedirectUrl(request, redirectTarget, 'Kode produk dan nama produk wajib diisi.', true)
+        );
       }
 
       await createProduct({
@@ -54,7 +58,9 @@ export async function POST(request) {
         is_active: true
       });
 
-      return redirectTo('/dashboard/products', 'Produk berhasil ditambahkan.');
+      return NextResponse.redirect(
+        buildRedirectUrl(request, '/dashboard/products', 'Produk berhasil ditambahkan.')
+      );
     }
 
     if (action === 'update-product') {
@@ -64,12 +70,16 @@ export async function POST(request) {
       const description = String(formData.get('description') || '').trim();
       const delivery_note = String(formData.get('delivery_note') || '').trim();
 
-      if (!Number.isFinite(productId)) {
-        return redirectTo(redirectTarget, 'Product ID tidak valid.', true);
+      if (!Number.isFinite(productId) || productId <= 0) {
+        return NextResponse.redirect(
+          buildRedirectUrl(request, redirectTarget, 'Product ID tidak valid.', true)
+        );
       }
 
       if (!product_code || !name) {
-        return redirectTo(redirectTarget, 'Kode produk dan nama produk wajib diisi.', true);
+        return NextResponse.redirect(
+          buildRedirectUrl(request, redirectTarget, 'Kode produk dan nama produk wajib diisi.', true)
+        );
       }
 
       await updateProduct(productId, {
@@ -79,18 +89,25 @@ export async function POST(request) {
         delivery_note: delivery_note || null
       });
 
-      return redirectTo('/dashboard/products', 'Produk berhasil diperbarui.');
+      return NextResponse.redirect(
+        buildRedirectUrl(request, '/dashboard/products', 'Produk berhasil diperbarui.')
+      );
     }
 
     if (action === 'delete-product') {
       const productId = Number(formData.get('product_id'));
 
-      if (!Number.isFinite(productId)) {
-        return redirectTo(redirectTarget, 'Product ID tidak valid.', true);
+      if (!Number.isFinite(productId) || productId <= 0) {
+        return NextResponse.redirect(
+          buildRedirectUrl(request, redirectTarget, 'Product ID tidak valid.', true)
+        );
       }
 
       await deleteProduct(productId);
-      return redirectTo('/dashboard/products', 'Produk berhasil dihapus.');
+
+      return NextResponse.redirect(
+        buildRedirectUrl(request, '/dashboard/products', 'Produk berhasil dihapus.')
+      );
     }
 
     if (action === 'toggle-product') {
@@ -98,14 +115,20 @@ export async function POST(request) {
       const isActiveRaw = String(formData.get('is_active') || '').trim();
       const is_active = isActiveRaw === 'true';
 
-      if (!Number.isFinite(productId)) {
-        return redirectTo(redirectTarget, 'Product ID tidak valid.', true);
+      if (!Number.isFinite(productId) || productId <= 0) {
+        return NextResponse.redirect(
+          buildRedirectUrl(request, redirectTarget, 'Product ID tidak valid.', true)
+        );
       }
 
       await toggleProduct(productId, is_active);
-      return redirectTo(
-        '/dashboard/products',
-        is_active ? 'Produk berhasil diaktifkan.' : 'Produk berhasil dinonaktifkan.'
+
+      return NextResponse.redirect(
+        buildRedirectUrl(
+          request,
+          '/dashboard/products',
+          is_active ? 'Produk berhasil diaktifkan.' : 'Produk berhasil dinonaktifkan.'
+        )
       );
     }
 
@@ -116,8 +139,17 @@ export async function POST(request) {
       const unit_price = Number(String(formData.get('unit_price') || '').replace(/[^0-9]/g, ''));
       const max_qty = maxQtyRaw ? Number(maxQtyRaw) : null;
 
-      if (!Number.isFinite(product_id) || !Number.isFinite(min_qty) || !Number.isFinite(unit_price)) {
-        return redirectTo(redirectTarget, 'Data tier harga tidak valid.', true);
+      if (
+        !Number.isFinite(product_id) ||
+        product_id <= 0 ||
+        !Number.isFinite(min_qty) ||
+        min_qty <= 0 ||
+        !Number.isFinite(unit_price) ||
+        unit_price <= 0
+      ) {
+        return NextResponse.redirect(
+          buildRedirectUrl(request, redirectTarget, 'Data tier harga tidak valid.', true)
+        );
       }
 
       await createPriceTier({
@@ -127,23 +159,40 @@ export async function POST(request) {
         unit_price
       });
 
-      return redirectTo('/dashboard/products', 'Tier harga berhasil ditambahkan.');
+      return NextResponse.redirect(
+        buildRedirectUrl(request, '/dashboard/products', 'Tier harga berhasil ditambahkan.')
+      );
     }
 
     if (action === 'delete-tier') {
       const tierId = Number(formData.get('tier_id'));
 
-      if (!Number.isFinite(tierId)) {
-        return redirectTo(redirectTarget, 'Tier ID tidak valid.', true);
+      if (!Number.isFinite(tierId) || tierId <= 0) {
+        return NextResponse.redirect(
+          buildRedirectUrl(request, redirectTarget, 'Tier ID tidak valid.', true)
+        );
       }
 
       await deletePriceTier(tierId);
-      return redirectTo('/dashboard/products', 'Tier harga berhasil dihapus.');
+
+      return NextResponse.redirect(
+        buildRedirectUrl(request, '/dashboard/products', 'Tier harga berhasil dihapus.')
+      );
     }
 
-    return redirectTo(redirectTarget, `Action tidak dikenali: ${action}`, true);
+    return NextResponse.redirect(
+      buildRedirectUrl(request, redirectTarget, `Action tidak dikenali: ${action}`, true)
+    );
   } catch (error) {
     console.error('POST /api/products error:', error);
-    return redirectTo('/dashboard/products', error.message || 'Terjadi error pada products API.', true);
+
+    return NextResponse.redirect(
+      buildRedirectUrl(
+        request,
+        '/dashboard/products',
+        error.message || 'Terjadi error pada products API.',
+        true
+      )
+    );
   }
 }
