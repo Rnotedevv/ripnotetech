@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Card } from '@/components/card';
 import { FlashBanner } from '@/components/flash-banner';
 import { getProductsForDashboard } from '@/lib/db';
@@ -5,29 +6,41 @@ import { formatRupiah } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
+function normalizeSearchParams(searchParams) {
+  if (!searchParams) return {};
+  return searchParams;
+}
+
+function getSingleParam(value) {
+  if (Array.isArray(value)) return value[0] || '';
+  return value || '';
+}
+
 export default async function ProductsPage({ searchParams }) {
-  const params = (await searchParams) || {};
+  const params = normalizeSearchParams(searchParams);
   const products = await getProductsForDashboard();
 
-  const editingId = params.edit ? Number(params.edit) : null;
+  const editRaw = getSingleParam(params?.edit);
+  const editingId = editRaw ? parseInt(String(editRaw), 10) : null;
+
   const editingProduct =
-    editingId && Number.isFinite(editingId)
+    Number.isFinite(editingId) && editingId > 0
       ? products.find((item) => Number(item.id) === editingId) || null
       : null;
 
+  const flashMessage = getSingleParam(params?.error) || getSingleParam(params?.ok);
+  const flashType = getSingleParam(params?.error) ? 'error' : 'success';
+
   return (
     <div className="space-y-6">
-      <FlashBanner
-        type={params.error ? 'error' : 'success'}
-        message={params.error || params.ok}
-      />
+      <FlashBanner type={flashType} message={flashMessage} />
 
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
         <Card
           title={editingProduct ? 'Edit Produk' : 'Tambah Produk Baru'}
           description={
             editingProduct
-              ? 'Perbarui detail produk yang sudah ada.'
+              ? `Sedang mengedit: ${editingProduct.name}`
               : 'Buat produk baru yang nanti akan muncul di menu List Product dan Beli Qty.'
           }
         >
@@ -94,12 +107,12 @@ export default async function ProductsPage({ searchParams }) {
               </button>
 
               {editingProduct ? (
-                <a
+                <Link
                   href="/dashboard/products"
                   className="secondary-btn w-full text-center"
                 >
                   Batal Edit
-                </a>
+                </Link>
               ) : null}
             </div>
           </form>
@@ -119,7 +132,7 @@ export default async function ProductsPage({ searchParams }) {
                 id="product_id"
                 name="product_id"
                 className="mt-2"
-                defaultValue={editingProduct?.id || ''}
+                defaultValue={editingProduct?.id ? String(editingProduct.id) : ''}
                 required
               >
                 <option value="">Pilih produk</option>
@@ -208,12 +221,12 @@ export default async function ProductsPage({ searchParams }) {
                 </div>
 
                 <div className="flex flex-col gap-2 sm:min-w-44">
-                  <a
+                  <Link
                     href={`/dashboard/products?edit=${product.id}`}
                     className="secondary-btn text-center"
                   >
                     Edit
-                  </a>
+                  </Link>
 
                   <form action="/api/products" method="POST">
                     <input type="hidden" name="action" value="delete-product" />
