@@ -4,7 +4,6 @@ import {
   createProduct,
   deletePriceTier,
   deleteProduct,
-  saveSettings,
   toggleProduct,
   updateProduct
 } from '@/lib/db';
@@ -55,7 +54,7 @@ export async function POST(request) {
         is_active: true
       });
 
-      return redirectTo(redirectTarget, 'Produk berhasil ditambahkan.');
+      return redirectTo('/dashboard/products', 'Produk berhasil ditambahkan.');
     }
 
     if (action === 'update-product') {
@@ -142,28 +141,9 @@ export async function POST(request) {
       return redirectTo('/dashboard/products', 'Tier harga berhasil dihapus.');
     }
 
-    if (action === 'save-settings') {
-      const payload = {
-        shop_name: String(formData.get('shop_name') || '').trim(),
-        welcome_text: String(formData.get('welcome_text') || '').trim(),
-        support_text: String(formData.get('support_text') || '').trim(),
-        menu_buy_label: String(formData.get('menu_buy_label') || '').trim(),
-        menu_deposit_label: String(formData.get('menu_deposit_label') || '').trim(),
-        menu_stock_label: String(formData.get('menu_stock_label') || '').trim(),
-        menu_products_label: String(formData.get('menu_products_label') || '').trim(),
-        menu_warranty_label: String(formData.get('menu_warranty_label') || '').trim(),
-        menu_balance_label: String(formData.get('menu_balance_label') || '').trim(),
-        min_deposit: Number(formData.get('min_deposit') || 10000)
-      };
-
-      await saveSettings(payload);
-      return redirectTo('/dashboard', 'Setting berhasil disimpan.');
-    }
-
     return redirectTo(redirectTarget, `Action tidak dikenali: ${action}`, true);
   } catch (error) {
     console.error('POST /api/products error:', error);
-    const fallbackUrl = '/dashboard/products';
-    return redirectTo(fallbackUrl, error.message || 'Terjadi error pada products API.', true);
+    return redirectTo('/dashboard/products', error.message || 'Terjadi error pada products API.', true);
   }
 }
