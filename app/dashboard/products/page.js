@@ -15,12 +15,11 @@ export default async function ProductsPage({ searchParams }) {
   const params = searchParams || {};
   const products = await getProductsForDashboard();
 
-  const editRaw = getSingleParam(params.edit);
-  const editingId = editRaw ? parseInt(String(editRaw), 10) : null;
+  const editId = getSingleParam(params.edit);
 
   const editingProduct =
-    Number.isFinite(editingId) && editingId > 0
-      ? products.find((item) => Number(item.id) === editingId) || null
+    editId
+      ? products.find((item) => String(item.id) === String(editId)) || null
       : null;
 
   const errorMessage = getSingleParam(params.error);
@@ -209,7 +208,7 @@ export default async function ProductsPage({ searchParams }) {
 
                 <div className="flex flex-col gap-2 sm:min-w-44">
                   <Link
-                    href={`/dashboard/products?edit=${product.id}`}
+                    href={`/dashboard/products?edit=${encodeURIComponent(String(product.id))}`}
                     className="secondary-btn text-center"
                   >
                     Edit
