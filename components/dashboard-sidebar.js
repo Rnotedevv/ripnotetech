@@ -11,6 +11,7 @@ const items = [
   { href: '/dashboard/users', label: 'Users & Saldo' },
   { href: '/dashboard/deposits', label: 'Deposits' },
   { href: '/dashboard/broadcast', label: 'Broadcast' },
+  { href: '/dashboard/licenses', label: 'Licenses' },
   { href: '/dashboard/faker-emails', label: 'Used Faker Emails' }
 ];
 
@@ -22,7 +23,7 @@ export function DashboardSidebar() {
       <div className="mb-6 rounded-2xl border border-white/10 bg-black/20 p-4">
         <p className="text-xs uppercase tracking-[0.35em] text-cyan-300">Auto Store</p>
         <h2 className="mt-2 text-xl font-semibold text-white">Admin Dashboard</h2>
-        <p className="mt-2 text-sm text-slate-400">Kelola bot, produk, stok, deposit, broadcast, dan email faker dari satu tempat.</p>
+        <p className="mt-2 text-sm text-slate-400">Kelola bot, produk, stok, deposit, broadcast, lisensi, dan faker email dari satu tempat.</p>
       </div>
 
       <nav className="space-y-2">
