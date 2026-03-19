@@ -20,7 +20,9 @@ function statusClass(status) {
 
 export default async function LicensesPage({ searchParams }) {
   const params = (await searchParams) || {};
-  const licenses = await listLicensesForDashboard(100);
+  const page = Math.max(1, Number(params.page || 1));
+const result = await listLicensesForDashboard(page, 20);
+const licenses = result.items;
 
   const copiedRaw = typeof params.copied === 'string' ? params.copied : '';
   const generatedKeys = copiedRaw
@@ -40,6 +42,19 @@ export default async function LicensesPage({ searchParams }) {
     },
     { total: 0, unused: 0, activated: 0, expired: 0, revoked: 0 }
   );
+  const prevPage = result.page > 1 ? result.page - 1 : null;
+  const nextPage = result.page < result.totalPages ? result.page + 1 : null;
+
+  function pageUrl(targetPage) {
+    const query = new URLSearchParams();
+
+    if (params.ok) query.set('ok', params.ok);
+    if (params.error) query.set('error', params.error);
+    if (params.copied) query.set('copied', params.copied);
+    query.set('page', String(targetPage));
+
+    return `/dashboard/licenses?${query.toString()}`;
+  }
 
   return (
     <div className="space-y-6">
@@ -217,7 +232,39 @@ export default async function LicensesPage({ searchParams }) {
           </div>
         </Card>
       </div>
+<div className="mt-4 flex items-center justify-between gap-3">
+            <div className="text-sm text-slate-400">
+              Halaman {result.page} dari {result.totalPages} • Total {result.total} data
+            </div>
 
+            <div className="flex gap-2">
+              {prevPage ? (
+                <a
+                  href={pageUrl(prevPage)}
+                  className="rounded-xl border border-white/10 px-4 py-2 text-sm text-white hover:bg-white/5"
+                >
+                  Prev
+                </a>
+              ) : (
+                <span className="rounded-xl border border-white/10 px-4 py-2 text-sm text-slate-500">
+                  Prev
+                </span>
+              )}
+
+              {nextPage ? (
+                <a
+                  href={pageUrl(nextPage)}
+                  className="rounded-xl border border-white/10 px-4 py-2 text-sm text-white hover:bg-white/5"
+                >
+                  Next
+                </a>
+              ) : (
+                <span className="rounded-xl border border-white/10 px-4 py-2 text-sm text-slate-500">
+                  Next
+                </span>
+              )}
+            </div>
+          </div>
       <script
         dangerouslySetInnerHTML={{
           __html: `
