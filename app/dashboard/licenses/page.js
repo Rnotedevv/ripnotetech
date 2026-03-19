@@ -22,6 +22,16 @@ export default async function LicensesPage({ searchParams }) {
   const params = (await searchParams) || {};
   const licenses = await listLicensesForDashboard(100);
 
+  const copiedRaw = typeof params.copied === 'string' ? params.copied : '';
+  const generatedKeys = copiedRaw
+    ? copiedRaw
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean)
+    : [];
+
+  const generatedKeysText = generatedKeys.join('\n');
+
   const counts = licenses.reduce(
     (acc, item) => {
       acc.total += 1;
@@ -34,6 +44,37 @@ export default async function LicensesPage({ searchParams }) {
   return (
     <div className="space-y-6">
       <FlashBanner type={params.error ? 'error' : 'success'} message={params.error || params.ok} />
+
+      {generatedKeys.length ? (
+        <div className="rounded-3xl border border-emerald-400/20 bg-emerald-400/10 p-5 backdrop-blur-xl">
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div>
+              <p className="text-sm font-medium text-emerald-200">Hasil generate terakhir</p>
+              <p className="mt-1 text-sm text-slate-300">
+                Total {generatedKeys.length} license berhasil dibuat dan siap di-copy sekaligus.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              className="primary-btn md:w-auto"
+              onClick={undefined}
+              id="copy-all-license-btn"
+              data-copy-text={generatedKeysText}
+            >
+              Copy All License
+            </button>
+          </div>
+
+          <textarea
+            readOnly
+            value={generatedKeysText}
+            className="mt-4 min-h-40 w-full rounded-2xl border border-white/10 bg-black/20 p-4 font-mono text-xs text-white"
+          />
+
+          <p id="copy-all-license-status" className="mt-3 text-sm text-slate-300" />
+        </div>
+      ) : null}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <div className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
@@ -59,24 +100,50 @@ export default async function LicensesPage({ searchParams }) {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
-        <Card title="Generate License" description="Buat key lisensi baru langsung dari dashboard. Secara default 1 key aktif sekali dan berlaku 1 hari setelah aktivasi.">
+        <Card
+          title="Generate License"
+          description="Buat key lisensi baru langsung dari dashboard. Secara default 1 key aktif sekali dan berlaku 1 hari setelah aktivasi."
+        >
           <form action="/api/licenses" method="POST" className="space-y-4">
             <input type="hidden" name="action" value="generate" />
             <input type="hidden" name="redirectTo" value="/dashboard/licenses" />
 
             <div>
               <label htmlFor="quantity">Jumlah Key</label>
-              <input id="quantity" name="quantity" type="number" min="1" max="100" defaultValue="1" className="mt-2" required />
+              <input
+                id="quantity"
+                name="quantity"
+                type="number"
+                min="1"
+                max="100"
+                defaultValue="1"
+                className="mt-2"
+                required
+              />
             </div>
 
             <div>
               <label htmlFor="duration_days">Durasi Aktif (hari)</label>
-              <input id="duration_days" name="duration_days" type="number" min="1" max="365" defaultValue="1" className="mt-2" required />
+              <input
+                id="duration_days"
+                name="duration_days"
+                type="number"
+                min="1"
+                max="365"
+                defaultValue="1"
+                className="mt-2"
+                required
+              />
             </div>
 
             <div>
               <label htmlFor="notes">Catatan</label>
-              <textarea id="notes" name="notes" className="mt-2 min-h-24" placeholder="Contoh: client A, promo, trial, dll" />
+              <textarea
+                id="notes"
+                name="notes"
+                className="mt-2 min-h-24"
+                placeholder="Contoh: client A, promo, trial, dll"
+              />
             </div>
 
             <button type="submit" className="primary-btn w-full">Generate License</button>
@@ -93,7 +160,10 @@ export default async function LicensesPage({ searchParams }) {
           </div>
         </Card>
 
-        <Card title="Daftar License" description="Semua key yang dibuat dari dashboard. Data expired akan diperbarui otomatis saat halaman dibuka.">
+        <Card
+          title="Daftar License"
+          description="Semua key yang dibuat dari dashboard. Data expired akan diperbarui otomatis saat halaman dibuka."
+        >
           <div className="table-shell">
             <table>
               <thead>
@@ -147,6 +217,33 @@ export default async function LicensesPage({ searchParams }) {
           </div>
         </Card>
       </div>
+
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+            (function () {
+              const btn = document.getElementById('copy-all-license-btn');
+              const status = document.getElementById('copy-all-license-status');
+              if (!btn) return;
+
+              btn.addEventListener('click', async function () {
+                const text = btn.getAttribute('data-copy-text') || '';
+                if (!text) {
+                  if (status) status.textContent = 'Belum ada license untuk di-copy.';
+                  return;
+                }
+
+                try {
+                  await navigator.clipboard.writeText(text);
+                  if (status) status.textContent = 'Berhasil copy semua license.';
+                } catch (error) {
+                  if (status) status.textContent = 'Gagal copy license. Copy manual dari textarea.';
+                }
+              });
+            })();
+          `
+        }}
+      />
     </div>
   );
 }
