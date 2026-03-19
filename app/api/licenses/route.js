@@ -21,7 +21,18 @@ export async function POST(request) {
         notes
       });
 
-      return redirectWithMessage(request, redirectTo, 'ok', `${created.length} license berhasil dibuat.`);
+      const copied = created
+        .map((item) => item.license_key)
+        .filter(Boolean)
+        .join(',');
+
+      const url = new URL(redirectTo, request.url);
+      url.searchParams.set('ok', `${created.length} license berhasil dibuat.`);
+      if (copied) {
+        url.searchParams.set('copied', copied);
+      }
+
+      return Response.redirect(url, 303);
     }
 
     if (action === 'revoke') {
