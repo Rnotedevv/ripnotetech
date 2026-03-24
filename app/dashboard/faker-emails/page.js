@@ -1,5 +1,4 @@
 import { Card } from '@/components/card';
-import { FlashBanner } from '@/components/flash-banner';
 import { listUsedFakerEmails } from '@/lib/db';
 import { formatDateTime } from '@/lib/utils';
 
@@ -7,77 +6,92 @@ export const dynamic = 'force-dynamic';
 
 export default async function FakerEmailsPage({ searchParams }) {
   const params = (await searchParams) || {};
-  const rows = await listUsedFakerEmails(200);
+  const page = Math.max(1, Number(params.page || 1));
+  const result = await listUsedFakerEmails(page, 25);
+  const emails = result.items;
+
+  const prevPage = result.page > 1 ? result.page - 1 : null;
+  const nextPage = result.page < result.totalPages ? result.page + 1 : null;
+
+  function pageUrl(targetPage) {
+    const query = new URLSearchParams();
+    query.set('page', String(targetPage));
+    return `/dashboard/faker-emails?${query.toString()}`;
+  }
 
   return (
     <div className="space-y-6">
-      <FlashBanner type={params.error ? 'error' : 'success'} message={params.error || params.ok} />
-
-      <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
-        <Card title="Reserve Faker Email" description="Simpan email yang sudah dipakai agar tidak double. Form ini opsional untuk input manual dari dashboard.">
-          <form action="/api/faker-emails" method="POST" className="space-y-4">
-            <input type="hidden" name="redirectTo" value="/dashboard/faker-emails" />
-            <div>
-              <label htmlFor="email">Email</label>
-              <input id="email" name="email" type="email" placeholder="faker123@example.com" className="mt-2" required />
-            </div>
-            <div>
-              <label htmlFor="source">Source</label>
-              <input id="source" name="source" placeholder="extension" className="mt-2" defaultValue="dashboard" />
-            </div>
-            <div>
-              <label htmlFor="licenseKey">License Key</label>
-              <input id="licenseKey" name="licenseKey" placeholder="opsional" className="mt-2" />
-            </div>
-            <div>
-              <label htmlFor="siteHost">Site Host</label>
-              <input id="siteHost" name="siteHost" placeholder="linkedin.com" className="mt-2" />
-            </div>
-            <div>
-              <label htmlFor="notes">Catatan</label>
-              <textarea id="notes" name="notes" className="mt-2 min-h-24" placeholder="opsional" />
-            </div>
-            <button type="submit" className="primary-btn w-full">Simpan Email</button>
-          </form>
-        </Card>
-
-        <Card title="Riwayat Email Terpakai" description="Email disimpan lowercase dan unik. Kalau email yang sama dikirim lagi, backend akan menolak.">
-          <div className="table-shell">
-            <table>
-              <thead>
-                <tr>
-                  <th>Email</th>
-                  <th>Source</th>
-                  <th>License</th>
-                  <th>Host</th>
-                  <th>Dipakai</th>
+      <Card
+        title="Used Faker Emails"
+        description="Daftar email faker yang sudah pernah dipakai."
+      >
+        <div className="table-shell">
+          <table>
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Source</th>
+                <th>License</th>
+                <th>Site Host</th>
+                <th>Used At</th>
+              </tr>
+            </thead>
+            <tbody>
+              {emails.map((item) => (
+                <tr key={item.id}>
+                  <td className="font-mono text-xs text-white">{item.email}</td>
+                  <td>{item.source || '-'}</td>
+                  <td>{item.license_key || '-'}</td>
+                  <td>{item.site_host || '-'}</td>
+                  <td>{item.used_at ? formatDateTime(item.used_at) : '-'}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={row.id}>
-                    <td>
-                      <div>
-                        <p className="text-white">{row.email}</p>
-                        <p className="text-xs text-slate-400">{row.notes || '-'}</p>
-                      </div>
-                    </td>
-                    <td>{row.source || '-'}</td>
-                    <td>{row.license_key || '-'}</td>
-                    <td>{row.site_host || '-'}</td>
-                    <td>{formatDateTime(row.used_at)}</td>
-                  </tr>
-                ))}
-                {!rows.length ? (
-                  <tr>
-                    <td colSpan="5" className="text-slate-400">Belum ada email faker yang disimpan.</td>
-                  </tr>
-                ) : null}
-              </tbody>
-            </table>
+              ))}
+
+              {!emails.length ? (
+                <tr>
+                  <td colSpan="5" className="text-slate-400">
+                    Belum ada data.
+                  </td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <div className="text-sm text-slate-400">
+            Halaman {result.page} dari {result.totalPages} • Total {result.total} data
           </div>
-        </Card>
-      </div>
+
+          <div className="flex gap-2">
+            {prevPage ? (
+              <a
+                href={pageUrl(prevPage)}
+                className="rounded-xl border border-white/10 px-4 py-2 text-sm text-white hover:bg-white/5"
+              >
+                Prev
+              </a>
+            ) : (
+              <span className="rounded-xl border border-white/10 px-4 py-2 text-sm text-slate-500">
+                Prev
+              </span>
+            )}
+
+            {nextPage ? (
+              <a
+                href={pageUrl(nextPage)}
+                className="rounded-xl border border-white/10 px-4 py-2 text-sm text-white hover:bg-white/5"
+              >
+                Next
+              </a>
+            ) : (
+              <span className="rounded-xl border border-white/10 px-4 py-2 text-sm text-slate-500">
+                Next
+              </span>
+            )}
+          </div>
+        </div>
+      </Card>
     </div>
   );
 }
